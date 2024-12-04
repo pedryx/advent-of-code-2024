@@ -16,15 +16,12 @@ fn find_occurrences_in_direction<'a>(
     ac: &'a AhoCorasick,
     dir_coords: impl Iterator<Item = impl DoubleEndedIterator<Item = Coord>> + Clone + 'a
 ) -> impl Iterator<Item = Coord> + 'a {
-    let forward = dir_coords.clone().flat_map(|coords| find_occurrences_in_line(input, ac, coords.collect()));
-    let backward = dir_coords.flat_map(|coords| find_occurrences_in_line(input, ac, coords.rev().collect()));
-
-    forward.chain(backward)
+    dir_coords.clone().flat_map(|coords| find_occurrences_in_line(input, ac, coords.collect()))
 }
 
-fn find_occurrences_in_grid(pattern: &'static str, input: &InputGrid, diag_only: bool) -> Vec<Coord> {
+fn find_occurrences_in_grid(patterns: &[&'static str], input: &InputGrid, diag_only: bool) -> Vec<Coord> {
     let len = input.len();
-    let ac = AhoCorasick::new(&[pattern]).unwrap();
+    let ac = AhoCorasick::new(patterns).unwrap();
 
     let diag_coords = (0..len).map(|x| (0..len - x).map(|y| (x + y, y)).collect::<Vec<_>>())
         .chain((1..len).map(|y| (0..len - y).map(|x| (x, x + y)).collect::<Vec<_>>()))
@@ -55,8 +52,8 @@ fn main() {
         .map(|l| l.bytes().collect())
         .collect();
     
-    let result_part1 = find_occurrences_in_grid("XMAS", &input, false).len();
-    let result_part2 = find_occurrences_in_grid("MAS", &input, true).iter()
+    let result_part1 = find_occurrences_in_grid(&["XMAS", "SAMX"], &input, false).len();
+    let result_part2 = find_occurrences_in_grid(&["MAS", "SAM"], &input, true).iter()
         .fold(HashMap::new(), |mut counter, coord| {
             *counter.entry(coord).or_insert(0) += 1;
             counter
