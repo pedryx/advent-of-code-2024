@@ -3,19 +3,19 @@ use std::{cmp::Ordering, collections::{HashMap, HashSet}, time::Instant};
 
 type PageType = usize;
 
-fn is_valid(update: &[PageType], pages: &Vec<HashSet<PageType>>) -> bool {
+fn is_valid(update: &[PageType], pages: &[HashSet<PageType>]) -> bool {
     update.iter()
         .enumerate()
         .all(|(i, &page1)| update[i + 1..].iter().all(|page2| !pages[*page2].contains(&page1)))
 }
 
-fn sort_update(update: &mut Vec<PageType>, pages: &Vec<HashSet<PageType>>) {
+fn sort_update(update: &mut [PageType], pages: &[HashSet<PageType>]) {
     update.sort_by(|a, b| {
         if pages[*a].contains(b) {
-            return Ordering::Less;
+            Ordering::Less
         }
         else {
-            return Ordering::Greater;
+            Ordering::Greater
         }
     });
 }
@@ -47,7 +47,7 @@ fn solve() -> (PageType, PageType) {
         .map(|update| index_to_page[&update[update.len() / 2]].parse::<PageType>().unwrap())
         .sum();
     let part2_result = invalid_updates.iter_mut()
-        .map(|mut update| { sort_update(&mut update, &pages); update })
+        .map(|update| { sort_update(update, &pages); update })
         .map(|update| index_to_page[&update[update.len() / 2]].parse::<PageType>().unwrap())
         .sum();
 
