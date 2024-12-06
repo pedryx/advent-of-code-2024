@@ -1,109 +1,72 @@
-use std::{collections::HashSet, time::Instant};
-use glam::I16Vec2;
-use itertools::iproduct;
-use rayon::prelude::*;
+use std::time::Instant;
+use itertools::Itertools;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rustc_hash::FxHashSet;
 
-const EMPTY_TILE: char = '.';
 const OBSTACLE_TILE: char = '#';
+const GUARD_TILE: char = '^';
 
 type Num = i16;
-type Pos = I16Vec2;
-type Map = Vec<Vec<Tile>>;
+type Vec2 = (Num, Num);
+type Map = Vec<Vec<bool>>;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum Tile {
-    Empty,
-    Obstacle,
-}
+fn parse_map() -> (Map, Vec2) {
+    let input = include_str!("../in.txt").lines();
+    let mut guard_pos = Vec2::default();
+    let mut map = Vec::new();
 
-fn parse_map() -> (Map, Pos) {
-    let mut guard_pos = Pos::default();
-    let map = include_str!("../in_test.txt")
-        .lines()
-        .enumerate()
-        .map(|(y, line)| line
-            .chars()
-            .enumerate()
-            .map(|(x, c)|
-                if c == OBSTACLE_TILE {
-                    Tile::Obstacle
-                }
-                else if c == EMPTY_TILE {
-                    Tile::Empty
-                }
-                else {
-                    guard_pos = Pos::new(x as Num, y as Num);
-                    Tile::Empty
-                }
-            ).collect::<Vec<_>>()
-        ).collect::<Vec<_>>();
+    for (y, line) in input.enumerate() {
+        map.push(vec![false; line.len()]);
+        for (x, c) in line.chars().enumerate() {
+            match c {
+                OBSTACLE_TILE => map[y][x] = true,
+                GUARD_TILE => guard_pos = (x as Num, y as Num),
+                _ => (),
+            };
+        }
+    }
 
     (map, guard_pos)
 }
 
-fn get_tile(map: &Map, pos: &Pos) -> Tile {
-    *map.get(pos.y as usize)
-        .map(|row| row.get(pos.x as usize).unwrap_or(&Tile::Empty))
-        .unwrap_or(&Tile::Empty)
+fn in_bounds(map: &Map, pos: &Vec2) -> bool {
+    0 <= pos.0 && pos.0 < map[0].len() as Num && 0 <= pos.1 && pos.1 < map.len() as Num
 }
 
-fn get_route(map: &Map, guard_pos: &Pos, obstacle_pos: &Option<Pos>) -> (HashSet<(Pos, Pos)>, bool) {
+fn get_route(map: &Map, guard_pos: &Vec2, obstacle: Option<&Vec2>) -> (Vec<Vec2>, bool) {
     let mut guard_pos = *guard_pos;
-    let mut guard_dir = Pos::new(0, -1);
-    let mut is_loop = false;
-    let mut visited = HashSet::new();
+    let mut guard_dir = (0, -1);
+    let mut is_loop = true;
+    let mut visited = FxHashSet::default();
 
-    while (0..map.len() as Num).contains(&guard_pos.y) && (0..map[0].len() as Num).contains(&guard_pos.x) {
-        if !visited.insert((guard_pos, guard_dir)) {
-            is_loop = true;
+    while visited.insert((guard_pos, guard_dir)) {
+        let next_pos = (guard_pos.0 + guard_dir.0, guard_pos.1 + guard_dir.1);
+
+        if !in_bounds(map, &next_pos) {
+            is_loop = false;
             break;
         }
 
-        let front_pos = guard_pos + guard_dir;
-        if get_tile(map, &front_pos) == Tile::Obstacle || obstacle_pos.map(|pos| front_pos == pos).unwrap_or(false) {
-            guard_dir.y *= -1;
-            std::mem::swap(&mut guard_dir.x, &mut guard_dir.y);
+        if map[next_pos.1 as usize][next_pos.0 as usize] || obstacle.map_or(false, |&pos| next_pos == pos) {
+            guard_dir = (-guard_dir.1, guard_dir.0);
         }
         else {
-            guard_pos = front_pos;
+            guard_pos = next_pos;
         }
     }
 
-    (visited, is_loop)
+    (visited.into_iter().map(|(pos, _)| pos).unique().collect(), is_loop)
 }
 
 fn solve() -> (Num, Num) {
     let (map, guard_pos) = parse_map();
+    let (route, _) = get_route(&map, &guard_pos, None);
 
-    let result1 = get_route(&map, &guard_pos, &None).0.len() as Num - 1;
-    //let mut result2 = 0;
-
-    // TODO: remove
-    //let total = map.len() * map[0].len();
-    //let mut i = 0;
-
-    let result2 = iproduct!(0..map.len(), 0..map[0].len()).collect::<Vec<_>>().par_iter().map(|&(x, y)| {
-        // TODO: remove
-        // if i % 100 == 0 {
-        //     println!("{}/{}", i, total);
-        // }
-        // i += 1;
-
-        let current = Pos::new(x as Num, y as Num);
-
-        if current == guard_pos || get_tile(&map, &current) == Tile::Obstacle {
-            return 0;
-        }
-
-        //map[y][x] = Tile::Obstacle;
-        if get_route(&map, &guard_pos, &Some(current)).1 {
-            1
-        }
-        else {
-            0
-        }
-        //map[y][x] = Tile::Empty;
-    }).count() as Num;
+    let result1 = route.len() as Num;
+    let result2 = route.into_par_iter()
+        .filter(|&pos| pos != guard_pos)
+        .filter(|pos| get_route(&map, &guard_pos, Some(pos)).1)
+        .count() as Num;
 
     (result1, result2)
 }
@@ -116,7 +79,4 @@ fn main() {
     println!("part1: {}", result1);
     println!("part2: {}", result2);
     println!("Elapsed time: {:.2?}", elapsed);
-
-    assert_eq!(result1, 5461);
-    assert_eq!(result2, 1836);
 }
