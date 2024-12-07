@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 use itertools::Itertools;
 
 type Num = u32;
@@ -21,12 +21,15 @@ fn solve_part2((a, b): (&[Num], &[Num])) -> Num {
 }
 
 fn main() {
+    let now = Instant::now();
     let input: (Vec<_>, Vec<_>) = include_str!("../in1.txt")
         .split_ascii_whitespace()
         .map(|n| n.parse::<Num>().unwrap())
         .tuples()
         .unzip();
+    let elapsed = now.elapsed();
 
     println!("part1: {:?}", solve_part1((&input.0, &input.1)));
     println!("part2: {:?}", solve_part2((&input.0, &input.1)));
+    println!("elapsed: {:.2?}", elapsed);
 }
