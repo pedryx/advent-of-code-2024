@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 use aho_corasick::AhoCorasick;
 
 type InputGrid = Vec<Vec<u8>>;
@@ -47,6 +47,7 @@ fn find_occurrences_in_grid(patterns: &[&'static str], input: &InputGrid, diag_o
 }
 
 fn main() {
+    let now = Instant::now();
     let input: InputGrid = include_str!("../in.txt")
         .lines()
         .map(|l| l.bytes().collect())
@@ -60,7 +61,9 @@ fn main() {
         }).iter()
         .filter(|&(_, &count)| count >= 2)
         .count();
+    let elapsed = now.elapsed();
 
     println!("part1: {:?}", result_part1);
     println!("part1: {:?}", result_part2);
+    println!("elapsed: {:.2?}", elapsed);
 }
