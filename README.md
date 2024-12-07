@@ -1,6 +1,6 @@
 # Advent of Code 2024 Solutions 🎄
 
-This repository contains my solutions for **Advent of Code 2024**. Some solutions with the `_2` suffix were inspired by approaches from other contributors.
+This repository contains my solutions for **Advent of Code 2024**. Solutions with the `_2` suffix were inspired by other participants.
 
 ## Performance Summary
 
