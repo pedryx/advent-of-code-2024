@@ -1,3 +1,4 @@
+use std::time::Instant;
 use itertools::Itertools;
 
 fn is_safe(record: impl Iterator<Item = i32> + Clone) -> bool
@@ -7,6 +8,7 @@ fn is_safe(record: impl Iterator<Item = i32> + Clone) -> bool
 }
 
 fn main() {
+    let now = Instant::now();
     let records = include_str!("../in.txt")
         .lines()
         .map(|l| l.split_ascii_whitespace().map(|t| t.parse::<i32>().unwrap()).collect::<Vec<_>>())
@@ -20,7 +22,9 @@ fn main() {
         .filter(|record| (0..record.len())
             .any(|i| is_safe(record.iter().enumerate().filter(|(j, _)| i != *j).map(|(_, v)| *v)))
         ).count();
+    let elapsed = now.elapsed();
 
     println!("part1: {:?}", result_part1);
     println!("part2: {:?}", result_part2);
+    println!("elapsed: {:.2?}", elapsed);
 }
