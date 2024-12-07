@@ -36,9 +36,9 @@ fn solve() -> (Num, Num) {
         .lines()
         .par_bridge()
         .map(|line|{
-            let (test_value, numbers) = line.split(':').next_tuple().unwrap();
+            let (test_value, numbers) = line.split_once(':').unwrap();
             let test_value = test_value.parse().unwrap();
-            let numbers = numbers.split_ascii_whitespace().map(|number| number.parse().unwrap()).collect::<Vec<_>>();
+            let numbers = numbers.split_ascii_whitespace().map(|number| number.parse().unwrap()).collect_vec();
 
             let part1 = if is_true(test_value, &numbers, false, numbers[0], 1) { test_value } else { 0 };
             let part2 = if is_true(test_value, &numbers, true, numbers[0], 1) { test_value } else { 0 };
