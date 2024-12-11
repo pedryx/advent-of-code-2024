@@ -17,3 +17,4 @@ This repository contains my solutions for **Advent of Code 2024**. Solutions wit
 | 08       |  63.30 µs          |
 | 09       | 525.20 µs          |
 | 10       | 298.80 µs          |
+| 11       |   8.39 ms          |
