@@ -1,5 +1,4 @@
 use std::time::Instant;
-
 use rustc_hash::FxHashMap;
 
 type StoneNum = i64;
