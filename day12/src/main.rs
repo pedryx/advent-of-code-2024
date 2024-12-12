@@ -1,4 +1,4 @@
-use std::{array::from_fn, io::BufRead, time::Instant};
+use std::{array::from_fn, collections::VecDeque, io::BufRead, time::Instant};
 use glam::IVec2;
 use itertools::Itertools;
 
@@ -35,13 +35,13 @@ fn count_stats(garden: &[u8], visited: &mut [bool], corner_map: &[i32; 256], siz
     }
 
     let region_flower = garden[start];
-    let mut frontier = vec![start];
+    let mut frontier = VecDeque::from([start]);
     let mut area = 0;
     let mut perimeter = 0;
     let mut side_count = 0;
     visited[start] = true;
 
-    while let Some(current) = frontier.pop() {
+    while let Some(current) = frontier.pop_front() {
         // number of sides is same as number of corners
         side_count += get_corner_count(garden, size, region_flower, corner_map, current);
         area += 1;
@@ -56,7 +56,7 @@ fn count_stats(garden: &[u8], visited: &mut [bool], corner_map: &[i32; 256], siz
             }
 
             visited[neighbor] = true;
-            frontier.push(neighbor);
+            frontier.push_back(neighbor);
         }
     }
 
