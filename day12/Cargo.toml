@@ -1,0 +1,9 @@
+[package]
+name = "day12"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+glam = "0.29.2"
+itertools = "0.13.0"
+rustc-hash = "2.1.0"
